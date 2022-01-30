@@ -13,10 +13,10 @@ library(tidyverse)
 library(e1071)
 
 # Set the working directory to my Group Project folder
-setwd("~/Desktop/UofA/Fall 2021/MIS 545/Group Project")
+setwd("~/MIS/Projects/DataMining/project/MIS545G18")
 
 # Read ModelChurn.csv into a tibble called customerChurn
-customerChurn <- read_csv(file = "ModelChurn.csv",
+customerChurn <- read_csv(file = "./data/ModelChurn.csv",
                          col_names = TRUE)
 
 # Display customerChurn in the console

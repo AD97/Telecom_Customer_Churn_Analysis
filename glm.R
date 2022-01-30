@@ -15,8 +15,9 @@ library(ggplot2)
 library(gridExtra)
 library(ggthemes)
 
-setwd("C:/Users/ngnai/OneDrive/Desktop/ECON 511A")
-customerChurn <- read_csv("ModelChurn.csv")
+
+setwd("~/MIS/Projects/DataMining/project/MIS545G18")
+customerChurn <- read_csv("./data/ModelChurn.csv")
 
 str(customerChurn)                  
 
@@ -57,3 +58,7 @@ print(churnConfusionMatrix)
 misClasificError <- mean(predictionModel != Testing$Churn)
 
 print(1 - misClasificError)
+
+
+predictiveAccuracy <- sum(diag(churnConfusionMatrix))/nrow(Testing)
+print(predictiveAccuracy)

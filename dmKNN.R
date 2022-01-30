@@ -11,8 +11,8 @@ library(corrplot)
 library(class)
 
 # set working directory 
-setwd("C:/Users/ngnai/OneDrive/Desktop/ECON 511A")
-customerChurn <- read_csv("ModelChurn.csv",
+setwd("~/MIS/Projects/DataMining/project/MIS545G18")
+customerChurn <- read_csv("./data/ModelChurn.csv",
                           col_types = "cllllnllllllllllllllllnnl",
                           col_names = TRUE)
 # display structure 

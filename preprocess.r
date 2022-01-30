@@ -7,6 +7,8 @@ library(smotefamily)
 ##########################
 
 # setwd()
+setwd("~/MIS/Projects/DataMining/project/MIS545G18")
+
 telecom <- read_csv(file = './data/WA_Fn-UseC_-Telco-Customer-Churn.csv',
                     col_types = 'cflffiffffffffffffnnf',
                     col_names = TRUE)
@@ -26,7 +28,7 @@ print(checkNa)
 # All the na data have MonthlyCharges, but tenure is 0
 # Dose 0 tenure cause na TotalCharges?
 print(telecom[telecom$tenure == 0,c("customerID","tenure","TotalCharges")])
-# Yes~!! They are the new costumer! Considering its tinny ratio , remote them!
+# Yes~!! They are the new costumer! Considering its tinny ratio , remove them!
 telecomNoNA <- telecom[!is.na(telecom$TotalCharges),]
 
 # Check again
@@ -98,7 +100,7 @@ corrplot(cor(telecomVisNumeric),
 # Display scatterplots
 telecomVisNumeric %>%
   ggplot() +
-  geom_point(mapping = aes(y = tenure , x = MonthlyCharges), color = "blue",
+  geom_point(mapping = aes(y = tenure , x = Contract), color = "blue",
              size = 2) +
   labs(title = "xxxxx",
        x = "tenure", y = "MonthlyCharges")
@@ -107,12 +109,26 @@ telecomVisNumeric %>%
 # Categorical data analysis
 #========
 summary(telecomVisual)
-telecomVisual %>%
-ggplot() +
-  geom_bar(mapping = aes(x =Churn, fill = gender), color = "black") +
-  labs(title = "xxxx",
-     x = "xxxx", y = "number") 
 # -- Go to find the interesting points. 
+summary(telecomVisual)
+telecomVisual %>%
+  ggplot() +
+  geom_bar(mapping = aes(x =Churn, fill = InternetService), color = "black") +
+  labs(title = "Customer Churn based on InternetService",
+       x = "Churn", y = "number") 
+
+telecomVisual %>%
+  ggplot() +
+  geom_bar(mapping = aes(x =Churn, fill = Contract), color = "black") +
+  labs(title = "Customer Churn based on Contract duration",
+       x = "Churn", y = "number") 
+
+telecomVisual %>%
+  ggplot() +
+  geom_bar(mapping = aes(x =Churn, fill = OnlineSecurity), color = "black") +
+  labs(title = "Customer Churn based on Online Security",
+       x = "Churn", y = "number") 
+
 
 
 
@@ -138,12 +154,12 @@ summary(telecomNorm)
 #========
 # gender SeniorCitizen Partner Dependents PhoneService Churn to 0 and 1
 telecomYN <- telecomNorm %>% mutate(gender = ifelse(gender == 'Female', 0, 1),
-                   SeniorCitizen = ifelse(SeniorCitizen == 'FALSE', 0, 1),
-                   Partner = ifelse(Partner == 'No', 0, 1),
-                   Dependents = ifelse(Dependents == 'No', 0, 1),
-                   PhoneService = ifelse(PhoneService == 'No', 0, 1),
-                   Churn = ifelse(Churn == 'No', 0, 1)
-                   )
+                                    SeniorCitizen = ifelse(SeniorCitizen == 'FALSE', 0, 1),
+                                    Partner = ifelse(Partner == 'No', 0, 1),
+                                    Dependents = ifelse(Dependents == 'No', 0, 1),
+                                    PhoneService = ifelse(PhoneService == 'No', 0, 1),
+                                    Churn = ifelse(Churn == 'No', 0, 1)
+)
 summary(telecomYN)
 
 # Dummy
@@ -162,12 +178,12 @@ newName <- sapply(newName,
 colnames(telecomDummy) <- newName
 
 
-# Remove duplicately meaning dummy columns
+# Remove duplicate dummy columns
 contract_Month2month <- newName[str_detect(newName,'Contract_Month-to-month')]
 PaymentMethod_Bank <- newName[str_detect(newName,'PaymentMethod_Bank')]
 telecomDummy <- telecomDummy[, !(names(telecomDummy)) %in% c(newName[str_detect(newName,'_No')],
-                                                     contract_Month2month
-                                                     ,PaymentMethod_Bank)]
+                                                             contract_Month2month
+                                                             ,PaymentMethod_Bank)]
 
 # Add the Churn back
 telecomDummy <- cbind(telecomDummy,telecomLabel)
@@ -211,7 +227,8 @@ churnTesting$Churn <- as.factor(churnTesting$Churn)
 churnTrainingSmoted$class <- NULL
 
 #### Note: SMOTE effect 
-##### KNN  (59, 0.7940842) -> (9, 0.705347) 
+##### KNN:  N (59, 0.7940842) | N + B (9, 0.705347) 
+##### DTree: (0.005, 0.7906712) | N (xxxx) | N + B (xxx)
 churnTraining$Churn <- as.factor(churnTraining$Churn)
 
 
@@ -226,13 +243,12 @@ library(class)
 
 churnTrainingSmotedLabel <- churnTrainingSmoted %>% select(Churn) 
 churnTrainingSmoted <- churnTrainingSmoted %>% select(-Churn) 
-
+print(churnTrainingSmoted)
 churnTrainingLabel <- churnTraining %>% select(Churn) 
 churnTraining <- churnTraining %>% select(-Churn) 
 
 churnTestingLabel <- churnTesting %>%  select(Churn) 
 churnTesting <- churnTesting %>% select(-Churn) 
-
 #------------
 # Non-SMOTE data
 #------------
@@ -295,8 +311,8 @@ print(maxAUCMatrix)
 # Create a matrix of k-values with their predictive accuracy
 # Store the matrix into an object called kValueMatrix
 kValueMatrixSMOTE <- matrix(data = NA,
-                       nrow = 0,
-                       ncol =2)
+                            nrow = 0,
+                            ncol =2)
 
 colnames(kValueMatrixSMOTE) <- c("k value", "Predictive accuracy")
 
@@ -325,3 +341,57 @@ SMOTEmaxAUC <-
                       max(kValueMatrixSMOTE[,"Predictive accuracy"])]
 SMOTEmaxAUCMatrix <- kValueMatrixSMOTE[which(kValueMatrixSMOTE == maxAUC[1]),]
 print(SMOTEmaxAUCMatrix)
+
+###############
+# Logistic regression
+##############
+
+churnModel <- glm(data = churnTraining,
+                  family = binomial,
+                  formula = Churn ~.)
+summary(churnModel)
+
+predictionModel <- predict(churnModel,
+                           churnTestingLabel,
+                           type = "response")
+
+predictionModel <- ifelse(predictionModel >= 0.5,1,0)
+
+print(predictionModel)  
+
+churnConfusionMatrix <- table(churnTestingLabel$Churn,
+                              predictionModel)
+print(churnConfusionMatrix)
+
+misClasificError <- mean(predictionModel != churnTestingLabel$Churn)
+
+print(1 - misClasificError)
+
+###############
+# Naïve Bayes
+##############
+
+###############
+# Decision tree
+##############
+
+#------------
+# original data
+#------------
+telecomVisual
+
+#------------
+# Non SMOTE data (N)
+#------------
+churnTraining
+churnTesting
+
+#------------
+# SMOTE data (N + B)
+#------------
+churnTrainingSmoted
+churnTesting
+
+###############
+# Neural network
+##############

@@ -9,6 +9,7 @@ library(rpart.plot)
 library(smotefamily)
 
 # Read ModelChurn.csv into a tibble called telecom 
+setwd("~/MIS/Projects/DataMining/project/MIS545G18")
 telecom <- read_csv(file = "./data/ModelChurn.csv")
 
 # Display the summary of telecom in the console

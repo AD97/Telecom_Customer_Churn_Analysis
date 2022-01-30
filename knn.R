@@ -13,7 +13,7 @@ library(ggthemes)
 library(class)
 
 setwd("C:/Users/ngnai/OneDrive/Desktop/ECON 511A")
-customerChurn <- read_csv("ModelChurn.csv")
+customerChurn <- read_csv("./data/ModelChurn.csv")
 
 str(customerChurn)                  
 
